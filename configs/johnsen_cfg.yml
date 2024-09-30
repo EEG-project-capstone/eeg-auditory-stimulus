@@ -1,0 +1,7 @@
+raw_path: '../raw/samples/'
+verbose: True
+l_freq: 0.5
+h_freq: 70
+sfreq: 256
+channels: [Fp1, Fp2, Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
+channel_map: {'T7': 'T3', 'T8': 'T4', 'P7': 'T5', 'P8': 'T6'}
