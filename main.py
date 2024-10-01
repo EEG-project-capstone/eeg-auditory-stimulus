@@ -1,7 +1,7 @@
 import os
 import yaml
 import argparse
-from data.eeg_loader import load_eeg
+from data.eeg_loader import load_eeg, get_eeg_timestamps
 
 def main(config_path):
     with open(config_path, encoding='utf-8') as f:
@@ -12,6 +12,9 @@ def main(config_path):
     _, raw = load_eeg(eeg_full_path, config)
     if config['verbose']:
         print(raw.info)
+
+    start_time, end_time = get_eeg_timestamps(raw)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

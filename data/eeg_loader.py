@@ -45,6 +45,23 @@ def load_eeg(eeg_path, config=None):
 
     return fname, raw
 
+def get_eeg_timestamps(raw_data):
+    # Start time of the recording
+    start_time = raw_data.info['meas_date']
+
+    # Duration of the recording
+    n_samples = raw_data.n_times  # Number of samples
+    sampling_frequency = raw_data.info['sfreq']  # Sampling frequency
+    duration = timedelta(seconds=n_samples / sampling_frequency)
+    # End time of the recording
+    end_time = start_time + duration
+
+    # Adjust EEG System time to UTC time
+    start_time = start_time + timedelta(hours=7)
+    end_time = end_time + timedelta(hours=7)
+    
+    return start_time, end_time
+
 def load_event(event_path, config):
     """
     Load event data from a file
