@@ -1,6 +1,8 @@
 import mne
 import os
 import numpy as np
+import pandas as pd
+from datetime import timedelta
 
 def read_file(eeg_path):
     fname, extension = os.path.splitext(eeg_path)
@@ -61,6 +63,30 @@ def get_eeg_timestamps(raw_data):
     end_time = end_time + timedelta(hours=7)
     
     return start_time, end_time
+
+def load_stimulus(event_full_path, start_time, end_time):
+    df = pd.read_csv(event_full_path)
+    if 'Unnamed: 0' in df.columns:
+        df = df.drop(columns=['Unnamed: 0'])
+
+    df['start_time'] = pd.to_datetime(df['start_time'], unit='s', utc=True)
+    df['end_time'] = pd.to_datetime(df['end_time'], unit='s', utc=True)
+
+    ptc_df = df[['patient_id','start_time','end_time']].groupby('patient_id',as_index=False).agg(['min', 'max'])
+    ptc_df['start'] = ptc_df[('start_time', 'min')]
+    ptc_df['end'] = ptc_df[('end_time', 'max')]
+
+    ptc_df['start_str'] = ptc_df['start'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    ptc_df['end_str'] = ptc_df[('end_time', 'max')].dt.strftime('%Y-%m-%d %H:%M:%S')
+    ptc_df = ptc_df.drop(columns=[('start_time', 'max'), ('start_time', 'min'), ('end_time', 'min'), ('end_time', 'max')])
+
+    patient_id = ptc_df.loc[(ptc_df['start'] > start_time) & (ptc_df['end'] < end_time),'patient_id']
+    if len(patient_id.index) == 1:
+        patient_id = patient_id.values[0]
+    else:
+        raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
+    
+    return patient_id
 
 def load_event(event_path, config):
     """
