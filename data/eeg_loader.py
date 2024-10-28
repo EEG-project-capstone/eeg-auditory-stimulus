@@ -101,3 +101,32 @@ def load_event(event_path, config):
     instructions = np.array(mne.read_events(event_path))
     print(instructions)
     return
+
+def create_trial_events(df, start_time, config):
+    sfreq = config['sfreq']
+
+    # Standardize timestamp of trials (in seconds) - minus from the start time
+    df['event_time_start'] = (df['start_time'] - start_time).dt.total_seconds()
+    df['event_time_end'] = (df['end_time'] - start_time).dt.total_seconds()
+    
+    event_time_in_sec = df['event_time_start'].to_list()
+    event_time_in_sec.append(df['event_time_end'].max())
+
+    event_times_in_samples = [int(time * sfreq) for time in event_time_in_sec]
+    previous_values = [0] * len(event_times_in_samples)
+    event_dict = {
+        'lang': 1,
+        'rcmd': 2,
+        'lcmd': 3,
+        'beep': 4,
+        'end_stim': 5
+    }
+
+    event_ids = []
+
+    for id in df['trial_type']:
+        event_ids.append(event_dict[id])
+    event_ids.append(6)
+
+    events = np.column_stack([event_times_in_samples, previous_values, event_ids])
+    return events, event_dict
