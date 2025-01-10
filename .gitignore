@@ -1,6 +1,12 @@
+# Personal Notebooks
+khanh-notebooks/
+
+# Random files
+.DS_Store
+__init__.py
+
 # Data folder
 raw/
-configs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

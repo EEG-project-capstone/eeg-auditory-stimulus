@@ -86,7 +86,7 @@ def load_stimulus(event_full_path, start_time, end_time):
     else:
         raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
     
-    return patient_id
+    return df, patient_id
 
 def load_event(event_path, config):
     """
@@ -101,3 +101,21 @@ def load_event(event_path, config):
     instructions = np.array(mne.read_events(event_path))
     print(instructions)
     return
+
+def detect_signal_start(raw, trial_start_sec):
+        dc_data = raw.get_data(picks='DC5')
+        threshold = 2 * np.std(dc_data)
+        exceeds_threshold = np.where(dc_data[0] > threshold)[0]
+        
+        # Convert trial start time (in seconds) to sample index
+        start_sample = int(trial_start_sec * raw.info['sfreq'])
+        
+        # Find the first exceedance after the start_sample
+        signal_start_samples = exceeds_threshold[exceeds_threshold > start_sample]
+        
+        if signal_start_samples.size > 0:
+            signal_start_sample = signal_start_samples[0]
+            signal_start_time = signal_start_sample / raw.info['sfreq']
+            return signal_start_sample, signal_start_time
+        else:
+            return None, None  # No signal detected
