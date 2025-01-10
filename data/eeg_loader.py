@@ -86,7 +86,7 @@ def load_stimulus(event_full_path, start_time, end_time):
     else:
         raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
     
-    return patient_id
+    return df, patient_id
 
 def load_event(event_path, config):
     """
@@ -102,31 +102,20 @@ def load_event(event_path, config):
     print(instructions)
     return
 
-def create_trial_events(df, start_time, config):
-    sfreq = config['sfreq']
-
-    # Standardize timestamp of trials (in seconds) - minus from the start time
-    df['event_time_start'] = (df['start_time'] - start_time).dt.total_seconds()
-    df['event_time_end'] = (df['end_time'] - start_time).dt.total_seconds()
-    
-    event_time_in_sec = df['event_time_start'].to_list()
-    event_time_in_sec.append(df['event_time_end'].max())
-
-    event_times_in_samples = [int(time * sfreq) for time in event_time_in_sec]
-    previous_values = [0] * len(event_times_in_samples)
-    event_dict = {
-        'lang': 1,
-        'rcmd': 2,
-        'lcmd': 3,
-        'beep': 4,
-        'end_stim': 5
-    }
-
-    event_ids = []
-
-    for id in df['trial_type']:
-        event_ids.append(event_dict[id])
-    event_ids.append(6)
-
-    events = np.column_stack([event_times_in_samples, previous_values, event_ids])
-    return events, event_dict
+def detect_signal_start(raw, trial_start_sec):
+        dc_data = raw.get_data(picks='DC5')
+        threshold = 2 * np.std(dc_data)
+        exceeds_threshold = np.where(dc_data[0] > threshold)[0]
+        
+        # Convert trial start time (in seconds) to sample index
+        start_sample = int(trial_start_sec * raw.info['sfreq'])
+        
+        # Find the first exceedance after the start_sample
+        signal_start_samples = exceeds_threshold[exceeds_threshold > start_sample]
+        
+        if signal_start_samples.size > 0:
+            signal_start_sample = signal_start_samples[0]
+            signal_start_time = signal_start_sample / raw.info['sfreq']
+            return signal_start_sample, signal_start_time
+        else:
+            return None, None  # No signal detected
