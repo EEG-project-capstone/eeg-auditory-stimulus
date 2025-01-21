@@ -1,7 +1,16 @@
-raw_path: '../raw/samples/'
-verbose: True
+raw_path: 'raw/samples/'
+protocol_path: 'raw/stimulus/patient_df.csv'
+output_path: '../results/johnsen/'
+verbose: False
 l_freq: 0.5
 h_freq: 70
 sfreq: 256
+dc_threshold: 0.01
+dc_channel: 'DC5'
 channels: [Fp1, Fp2, Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
 channel_map: {'T7': 'T3', 'T8': 'T4', 'P7': 'T5', 'P8': 'T6'}
+trial_type: beep
+tmin: -1
+tmax: 1
+plot_scalings: {'eeg': 6e-5, 'misc': 2e-3}
+fft_rate: 1
