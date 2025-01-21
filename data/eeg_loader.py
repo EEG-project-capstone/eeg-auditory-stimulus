@@ -115,6 +115,7 @@ def load_stimulus(event_full_path, start_time, end_time):
         raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
     
     return df, patient_id
+    return df, patient_id
 
 def trial_start_sec(row, start_time):
     return (row['start_time']-start_time).total_seconds()
