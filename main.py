@@ -4,8 +4,8 @@ import yaml
 import matplotlib.pyplot as plt
 import argparse
 import mne
-from data.eeg_loader import load_eeg, load_stimulus, get_eeg_timestamps
-from data.eeg_loader import trial_start_sec, trial_end_sec, detect_signal_start
+from preprocessing.eeg_loader import load_eeg, load_stimulus, get_eeg_timestamps
+from preprocessing.eeg_loader import trial_start_sec, trial_end_sec, detect_signal_start
 from paradigms.johnsen_quan import get_johnsen_epochs_arr, plot_epochs
 from paradigms.johnsen_quan import compute_log_band_power_avg, compute_z_scores_for_bands
 
@@ -92,7 +92,6 @@ def main(config_path):
 
     # Compute Z-scores for stimulation epochs
     z_score_results = compute_z_scores_for_bands(ref_log_band_power_avg, active_log_band_power_avg, config['freq_bands'])
-    # print([x['z_scores'].shape for x in z_score_results.values()])
 
     # Print the results
     # if config['verbose']:
