@@ -1,4 +1,10 @@
 mne
 os
-pyyaml
+matplotlib
 argparse
+pyyaml
+pandas
+random
+datetime
+PyQt5
+h5io
