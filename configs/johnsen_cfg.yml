@@ -1,12 +1,22 @@
-raw_path: 'raw/samples/'
-protocol_path: 'raw/stimulus/patient_df.csv'
-output_path: 'results/johnsen/'
+eeg_dir: 'data/edf/'
+protocol_path: 'data/raw/stimulus/patient_df.csv'
+stimuli_dir: 'data/stimuli_record/'
+catalog_path: 'data/patient_notes.csv'
+temp_eeg_dir: 'data/temp/johnsen/'
+fig_dir: 'data/figs/johnsen/'
+output_path: 'data/results/johnsen/'
+ref_psd_fname: 'ref_psd.fif'
+active_psd_fname: 'active_psd.fif'
+ref_log_psd_fname: "ref_log_band_power_avg.json"
+active_log_psd_fname: "active_log_band_power_avg.json"
+z_score_fname: 'z_score.json'
+log_psd_fig_fname: 'log_power.png'
+z_score_fig_fname: 'z_score.png'
 verbose: False
 l_freq: 0.5
 h_freq: 70
 sfreq: 256
 dc_threshold: 0.01
-dc_channel: 'DC5'
 channels: [Fp1, Fp2, Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
 channel_map: {'T7': 'T3', 'T8': 'T4', 'P7': 'T5', 'P8': 'T6'}
 trial_type: beep
@@ -19,4 +29,3 @@ freq_bands:
     'theta': [4, 8]
     'alpha': [8, 13]
     'beta': [13, 30]
-
