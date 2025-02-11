@@ -9,7 +9,7 @@ ref_psd_fname: 'ref_psd.fif'
 active_psd_fname: 'active_psd.fif'
 ref_log_psd_fname: "ref_log_band_power_avg.json"
 active_log_psd_fname: "active_log_band_power_avg.json"
-z_score_fname: 'z_score.npz'
+z_score_fname: 'z_score.json'
 log_psd_fig_fname: 'log_power.png'
 z_score_fig_fname: 'z_score.png'
 verbose: False
