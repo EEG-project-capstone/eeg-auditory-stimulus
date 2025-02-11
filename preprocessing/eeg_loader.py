@@ -28,7 +28,7 @@ def get_dc_channels(raw, threshold):
     print(f"DC channels with signals: {signal_channels}")
     return signal_channels
 
-def load_eeg(eeg_path, config=None):
+def load_eeg(eeg_path, config):
     """
     Load EEG data from a file and apply preprocessing steps
     param:
@@ -64,13 +64,8 @@ def load_eeg(eeg_path, config=None):
     if len(missing_channels) > 0:
         raise ValueError(f"Missing channels: {missing_channels}")
     channels = config['channels']
-    dc_channels = get_dc_channels(raw, config['dc_threshold'])
-    
-    if len(dc_channels) == 1:
-        dc_channel = dc_channels[0]
-    else:
-        raise ValueError(f"Found more than 1 DC channel: {dc_channels}")
-    channels.extend([dc_channel])
+    dc_channel = get_dc_channels(raw, config['dc_threshold'])
+    channels.extend(dc_channel)
     channels = list(set(channels))
     raw.pick(channels)
     return fname, raw, dc_channel
@@ -100,6 +95,7 @@ def load_stimulus(event_full_path, start_time, end_time):
     df['start_time'] = pd.to_datetime(df['start_time'], unit='s', utc=True)
     df['end_time'] = pd.to_datetime(df['end_time'], unit='s', utc=True)
 
+    # Check that patient only appeared once in the time range
     ptc_df = df[['patient_id','start_time','end_time']].groupby('patient_id',as_index=False).agg(['min', 'max'])
     ptc_df['start'] = ptc_df[('start_time', 'min')]
     ptc_df['end'] = ptc_df[('end_time', 'max')]
@@ -107,14 +103,12 @@ def load_stimulus(event_full_path, start_time, end_time):
     ptc_df['start_str'] = ptc_df['start'].dt.strftime('%Y-%m-%d %H:%M:%S')
     ptc_df['end_str'] = ptc_df[('end_time', 'max')].dt.strftime('%Y-%m-%d %H:%M:%S')
     ptc_df = ptc_df.drop(columns=[('start_time', 'max'), ('start_time', 'min'), ('end_time', 'min'), ('end_time', 'max')])
-
     patient_id = ptc_df.loc[(ptc_df['start'] > start_time) & (ptc_df['end'] < end_time),'patient_id']
     if len(patient_id.index) == 1:
         patient_id = patient_id.values[0]
     else:
-        raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
+        raise ValueError(f"Patient has {len(patient_id.index)} stimulus activies between {start_time} and {end_time}")
     
-    return df, patient_id
     return df, patient_id
 
 def trial_start_sec(row, start_time):
@@ -123,7 +117,7 @@ def trial_start_sec(row, start_time):
 def trial_end_sec(row, start_time):
     return (row['end_time']-start_time).total_seconds()
 
-def detect_signal_start(raw, dc_channel, trial_start_sec):
+def detect_signal_start(raw, trial_start_sec, dc_channel):
         dc_data = raw.get_data(picks=dc_channel)
         threshold = 2 * np.std(dc_data)
         exceeds_threshold = np.where(dc_data[0] > threshold)[0]
@@ -140,3 +134,32 @@ def detect_signal_start(raw, dc_channel, trial_start_sec):
             return signal_start_sample, signal_start_time
         else:
             return None, None  # No signal detected
+        
+def preprocess_stim(raw, stim_csv_path, config, start_time, end_time, dc_channel):
+    # Pre-processing EEG data
+    try:
+        ptc_df, patient_id = load_stimulus(stim_csv_path, start_time, end_time)
+    except ValueError as e:
+        ptc_df = pd.read_csv(stim_csv_path)
+        if 'Unnamed: 0' in ptc_df.columns:
+            ptc_df = ptc_df.drop(columns=['Unnamed: 0'])
+        ptc_df['start_time'] = pd.to_datetime(ptc_df['start_time'], unit='s', utc=True)
+        ptc_df['end_time'] = pd.to_datetime(ptc_df['end_time'], unit='s', utc=True)
+
+        patient_id = ptc_df['patient_id'].values[0]
+
+    patient_trial = ptc_df.loc[(ptc_df['patient_id'] == patient_id) & (ptc_df['trial_type'] == config['trial_type'])]
+    patient_trial['start_sec'] = patient_trial.apply(lambda x: trial_start_sec(x, start_time), axis=1)
+    patient_trial['end_sec'] = patient_trial.apply(lambda x: trial_end_sec(x, start_time), axis=1)
+
+    signal_start_times = []
+    signal_start_samples = []
+    for start_sec in patient_trial['start_sec']:
+        signal_start_sample, signal_start_time = detect_signal_start(raw, start_sec, dc_channel)
+        signal_start_times.append(signal_start_time)
+        signal_start_samples.append(signal_start_sample)
+
+    patient_trial['signal_start_time'] = signal_start_times
+    patient_trial['signal_start_sample'] = signal_start_samples
+    
+    return patient_trial
