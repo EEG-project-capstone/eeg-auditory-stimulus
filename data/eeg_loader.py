@@ -28,7 +28,7 @@ def get_dc_channels(raw, threshold):
     print(f"DC channels with signals: {signal_channels}")
     return signal_channels
 
-def load_eeg(eeg_path, config=None):
+def load_eeg(eeg_path, config=None, subject=None):
     """
     Load EEG data from a file and apply preprocessing steps
     param:
@@ -63,7 +63,16 @@ def load_eeg(eeg_path, config=None):
     missing_channels = [x for x in config['channels'] if x not in raw.info['ch_names']]
     if len(missing_channels) > 0:
         raise ValueError(f"Missing channels: {missing_channels}")
-    channels = config['channels']
+    
+    if subject == "CON002":
+        channels = config['CON002_channels']
+    elif subject == "CON003":
+        channels = config['CON003_channels']
+    elif subject == "CON004":
+        channels = config['CON004_channels']
+    else:
+        channels = config['channels']
+
     dc_channels = get_dc_channels(raw, config['dc_threshold'])
     
     if len(dc_channels) == 1:
@@ -75,7 +84,7 @@ def load_eeg(eeg_path, config=None):
     raw.pick(channels)
     return fname, raw, dc_channel
 
-def get_eeg_timestamps(raw_data):
+def get_eeg_timestamps(raw_data, subject=None):
     # Start time of the recording
     start_time = raw_data.info['meas_date']
 
@@ -87,8 +96,12 @@ def get_eeg_timestamps(raw_data):
     end_time = start_time + duration
 
     # Adjust EEG System time to UTC time
-    start_time = start_time + timedelta(hours=7)
-    end_time = end_time + timedelta(hours=7)
+    if subject in ("CON003","CON004"):
+        start_time = start_time + timedelta(hours=8)
+        end_time = end_time + timedelta(hours=8)#patient 3- 8 other - 7 hours
+    else:
+        start_time = start_time + timedelta(hours=7)
+        end_time = end_time + timedelta(hours=7)#patient 3- 8 other - 7 hours
     
     return start_time, end_time
 
@@ -100,6 +113,7 @@ def load_stimulus(event_full_path, start_time, end_time):
     df['start_time'] = pd.to_datetime(df['start_time'], unit='s', utc=True)
     df['end_time'] = pd.to_datetime(df['end_time'], unit='s', utc=True)
 
+    # Check that patient only appeared once in the time range
     ptc_df = df[['patient_id','start_time','end_time']].groupby('patient_id',as_index=False).agg(['min', 'max'])
     ptc_df['start'] = ptc_df[('start_time', 'min')]
     ptc_df['end'] = ptc_df[('end_time', 'max')]
@@ -107,14 +121,12 @@ def load_stimulus(event_full_path, start_time, end_time):
     ptc_df['start_str'] = ptc_df['start'].dt.strftime('%Y-%m-%d %H:%M:%S')
     ptc_df['end_str'] = ptc_df[('end_time', 'max')].dt.strftime('%Y-%m-%d %H:%M:%S')
     ptc_df = ptc_df.drop(columns=[('start_time', 'max'), ('start_time', 'min'), ('end_time', 'min'), ('end_time', 'max')])
-
     patient_id = ptc_df.loc[(ptc_df['start'] > start_time) & (ptc_df['end'] < end_time),'patient_id']
     if len(patient_id.index) == 1:
         patient_id = patient_id.values[0]
     else:
-        raise ValueError(f"Found more than 1 stimulus activies for patient {patient_id} between {start_time} and {end_time}")
+        raise ValueError(f"Patient has {len(patient_id.index)} stimulus activies between {start_time} and {end_time}")
     
-    return df, patient_id
     return df, patient_id
 
 def trial_start_sec(row, start_time):
