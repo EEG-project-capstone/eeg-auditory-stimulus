@@ -28,7 +28,7 @@ def get_dc_channels(raw, threshold):
     print(f"DC channels with signals: {signal_channels}")
     return signal_channels
 
-def load_eeg(eeg_path, config):
+def load_eeg(eeg_path, config, subject=None):
     """
     Load EEG data from a file and apply preprocessing steps
     param:
@@ -63,14 +63,23 @@ def load_eeg(eeg_path, config):
     missing_channels = [x for x in config['channels'] if x not in raw.info['ch_names']]
     if len(missing_channels) > 0:
         raise ValueError(f"Missing channels: {missing_channels}")
-    channels = config['channels']
+
+    if subject == "CON002":
+        channels = config['CON002_channels']
+    elif subject == "CON003":
+        channels = config['CON003_channels']
+    elif subject == "CON004":
+        channels = config['CON004_channels']
+    else:
+        channels = config['channels']
+    
     dc_channel = get_dc_channels(raw, config['dc_threshold'])
     channels.extend(dc_channel)
     channels = list(set(channels))
     raw.pick(channels)
     return fname, raw, dc_channel
 
-def get_eeg_timestamps(raw_data):
+def get_eeg_timestamps(raw_data, subject=None):
     # Start time of the recording
     start_time = raw_data.info['meas_date']
 
@@ -82,8 +91,12 @@ def get_eeg_timestamps(raw_data):
     end_time = start_time + duration
 
     # Adjust EEG System time to UTC time
-    start_time = start_time + timedelta(hours=7)
-    end_time = end_time + timedelta(hours=7)
+    if subject in ("CON003","CON004"): # Summertime setting
+        start_time = start_time + timedelta(hours=8)
+        end_time = end_time + timedelta(hours=8)
+    else:
+        start_time = start_time + timedelta(hours=7)
+        end_time = end_time + timedelta(hours=7)
     
     return start_time, end_time
 
