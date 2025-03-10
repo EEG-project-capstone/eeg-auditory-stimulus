@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 setup(
-    name="eeg-auditory-stimulus",
+    name="eeg_auditory_stimulus",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
