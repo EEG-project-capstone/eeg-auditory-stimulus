@@ -4,7 +4,7 @@ import os
 setup(
     name="eeg_auditory_stimulus",
     version="0.1.0",
-    packages=find_packages(),
+    packages=find_packages(include=["eeg_auditory_stimulus", "preprocessing", "eeg_auditory_stimulus.*", "preprocessing.*"]),
     install_requires=[
         "pyyaml", "mne", "pandas", "datetime", "PyQt5", "scikit-learn", "seaborn"
     ],
