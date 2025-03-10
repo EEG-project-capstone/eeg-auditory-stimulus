@@ -4,7 +4,7 @@ data/
 
 # Random files
 .DS_Store
-__init__.py
+
 
 # Data folder
 raw/
