@@ -6,7 +6,7 @@ setup(
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
-        "pyyaml", "mne", "pandas", "random", "datetime", "PyQt5", "scikit-learn", "seaborn"
+        "pyyaml", "mne", "pandas", "datetime", "PyQt5", "scikit-learn", "seaborn"
     ],
     author="Nguyen Ha, Khanh Ha, Joobee Jung, Trisha Prasant",
     author_email=["nguyenbh@uw.edu", "bkha@uw.edu", "jbjunguw@uw.edu", "trishp3@uw.edu"],
