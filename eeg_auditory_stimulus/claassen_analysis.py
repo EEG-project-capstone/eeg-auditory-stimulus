@@ -30,10 +30,10 @@ matplotlib.use('Qt5Agg')
 # CONFIG_PATH = os.path.join(MODULE_DIR, "configs", "claassen_cfg.yml")
 
 # # Load Configuration
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script directory
-# CONFIG_PATH = os.path.join(BASE_DIR, "../configs/claassen_cfg.yml")  # Adjust the path
-MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(MODULE_DIR, "data", "configs", "claassen_cfg.yml")
+# Get the absolute path of the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
+CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
+
 
 def load_config():
     """Load the configuration file."""
