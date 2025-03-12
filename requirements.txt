@@ -1,12 +1,12 @@
 mne
-os
+#os
 matplotlib
 argparse
 pyyaml
 pandas
-random
+#random
 datetime
-PyQt5
+#PyQt5
 h5io
 scikit-learn
 seaborn
