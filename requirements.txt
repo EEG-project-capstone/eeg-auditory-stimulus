@@ -1,10 +1,10 @@
 mne
-os
+# os
 matplotlib
 argparse
 pyyaml
 pandas
-random
+# random
 datetime
 PyQt5
 h5io
