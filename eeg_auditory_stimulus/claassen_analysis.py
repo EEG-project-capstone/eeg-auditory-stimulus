@@ -37,10 +37,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, '..', '..', 'configs', 'claassen_cfg.yml')
 
 def load_config():
-    """Load the configuration file."""
+    """Loads the configuration file safely."""
+    if not os.path.exists(CONFIG_PATH):
+        raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
+
     with open(CONFIG_PATH, 'r') as file:
         return yaml.safe_load(file)
-            # return file.read()
 
 
 config = load_config()
