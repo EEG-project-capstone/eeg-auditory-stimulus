@@ -26,8 +26,9 @@ matplotlib.use('Qt5Agg')
 
 # # Load Configuration
 # Get the absolute path of the project root directory
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
+# CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'configs', 'claassen_cfg.yml')
+# CONFIG_PATH = './configs/claassen_cfg.yml'
+CONFIG_PATH = '/Users/joobeejung/eeg-auditory-stimulus/configs/claassen_cfg.yml'
 
 def load_config():
     """Load the configuration file."""
