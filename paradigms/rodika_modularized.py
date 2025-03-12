@@ -486,6 +486,103 @@ def plot_itpc_avg(itpc, freqs, fmin=0.5, fmax=4, out_dir=None):
         fig_path = os.path.join(out_dir, 'avg_itpc_plot.png')
         plt.savefig(fig_path)  
 
+def main():
+    """
+    Main function orchestrating the entire EEG analysis pipeline: 
+    loading, preprocessing, stimulus alignment, epoching, ICA, 
+    referencing, ITPC computation, and plotting.
+    """
+    # 1. Define your parameters here (or load them from a config)
+    eeg_file_path = "CON003_clipped.EDF"
+    stimulus_csv_path = "patient_df.csv"
+    patient_id = "CON003"
+    
+    use_channels = ['C3','C4','O1','O2','FT9','FT10','Cz','F3','F4','F7','F8',
+                    'Fz','Fp1','Fp2','Fpz','P3','P4','Pz','T7','T8','P7','P8']
+    bad_channels = ['Fp1', 'Fp2', 'T7', 'F8', 'F7']
+    
+    # 2. Load and preprocess EEG data
+    raw = load_and_preprocess_eeg(
+        eeg_file_path=eeg_file_path,
+        use_channels=use_channels,
+        bad_channels=bad_channels
+    )
+    
+    # 3. Load and align stimulus data
+    stimulus_df = load_stimulus_data(
+        csv_path=stimulus_csv_path,
+        patient_id=patient_id,
+        trial_type='lang',       # or another trial type
+        timezone_offset=8        # offset in hours
+    )
+    stimulus_df = align_stimulus_to_eeg(stimulus_df, raw)
+    
+    # 4. Create events and epochs
+    events, event_id = create_events_from_stimulus(
+        raw=raw, 
+        stimulus_df=stimulus_df,
+        event_description='lang'
+    )
+    epochs = create_epochs(
+        raw=raw,
+        events=events,
+        tmin=-1,
+        tmax=12 * 1.28,  # 12 sentences * 1.28s each = 15.36
+        baseline=None,
+        resample_freq=256
+    )
+    
+    # 5. Apply ICA (first to continuous data, then apply to epoched data)
+    ica, _ = apply_ica(
+        data=raw,   # Usually we fit ICA on continuous data
+        n_components=15,
+        eog_ch='Fpz',
+        threshold=1
+    )
+    epochs_clean = epochs.copy()
+    ica.apply(epochs_clean)  # Apply same ICA to epoched data
+    
+    # 6. Montage & Re-reference
+    epochs_clean = setup_montage_and_reference(
+        epochs=epochs_clean,
+        montage_name='standard_1020',
+        ref_type='average'
+    )
+    
+    # 7. Prepare data for ITPC (filter to 0.1-25 Hz, crop first 1.28s)
+    epochs_clean, epochs_data = prepare_data_for_itpc(
+        epochs=epochs_clean,
+        low_freq=0.1,
+        high_freq=25,
+        crop_tmin=1.28
+    )
+    
+    # 8. Compute ITPC
+    fs = 256  # sampling rate
+    itpc, freqs, phase_data = compute_itpc(epochs_data=epochs_data, fs=fs)
+    
+    # 9. Plot results (individual channels + average)
+    out_dir = "plots"  # folder to save figures
+    plot_itpc_each_channel(
+        itpc=itpc,
+        freqs=freqs,
+        ch_names=epochs_clean.info['ch_names'],
+        fmin=0.5,
+        fmax=4,
+        out_dir=out_dir
+    )
+    plot_itpc_avg(
+        itpc=itpc,
+        freqs=freqs,
+        fmin=0.5,
+        fmax=4,
+        out_dir=out_dir
+    )
+    
+if __name__ == "__main__":
+    # Entry point to run the main function
+    main()
+
 '''
 EXAMPLE USAGE:
 
