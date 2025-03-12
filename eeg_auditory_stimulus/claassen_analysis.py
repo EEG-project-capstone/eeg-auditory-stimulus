@@ -24,11 +24,10 @@ from preprocessing.save_functions import save_log, save_plot
 # Set the backend for Matplotlib
 matplotlib.use('Qt5Agg')
 
-# Add parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-
-# Load Configuration
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'configs', 'claassen_cfg.yml')
+# # Load Configuration
+# Get the absolute path of the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
+CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
 
 def load_config():
     """Load the configuration file."""
