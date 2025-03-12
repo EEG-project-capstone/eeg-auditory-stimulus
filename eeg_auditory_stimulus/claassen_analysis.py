@@ -25,16 +25,19 @@ from preprocessing.save_functions import save_log, save_plot
 matplotlib.use('Qt5Agg')
 
 # Add parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+# sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(MODULE_DIR, "configs", "claassen_cfg.yml")
 
-# Load Configuration
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script directory
-CONFIG_PATH = os.path.join(BASE_DIR, "../configs/claassen_cfg.yml")  # Adjust the path
+# # Load Configuration
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script directory
+# CONFIG_PATH = os.path.join(BASE_DIR, "../configs/claassen_cfg.yml")  # Adjust the path
 
 def load_config():
     """Load the configuration file."""
     with open(CONFIG_PATH, 'r') as file:
-        return yaml.safe_load(file)
+        # return yaml.safe_load(file)
+        return file.read()
 
 config = load_config()
 
