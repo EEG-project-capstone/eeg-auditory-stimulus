@@ -33,8 +33,9 @@ matplotlib.use('Qt5Agg')
 # Get the absolute path of the project root directory
 # PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
 # CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(SCRIPT_DIR, '..', '..', 'configs', 'claassen_cfg.yml')
+# SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# CONFIG_PATH = os.path.join(SCRIPT_DIR, '..', '..', 'configs', 'claassen_cfg.yml')
+CONFIG_PATH = '/Users/joobeejung/brain-waves-2.0/data/configs/claassen_cfg.yml'
 
 def load_config():
     """Loads the configuration file safely."""
