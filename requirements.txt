@@ -8,3 +8,5 @@ pandas
 datetime
 #PyQt5
 h5io
+scikit-learn
+seaborn

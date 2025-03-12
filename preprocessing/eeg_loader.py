@@ -67,12 +67,12 @@ def load_eeg(eeg_path, config, subject=None):
     if subject == "CON002":
         channels = config['CON002_channels']
     elif subject == "CON003":
-        channels = config['CON003_channels']
+        channels = config['channels']
     elif subject == "CON004":
         channels = config['CON004_channels']
     else:
         channels = config['channels']
-    
+    channels = config['channels']
     dc_channel = get_dc_channels(raw, config['dc_threshold'])
     channels.extend(dc_channel)
     channels = list(set(channels))
@@ -97,7 +97,7 @@ def get_eeg_timestamps(raw_data, subject=None):
     else:
         start_time = start_time + timedelta(hours=7)
         end_time = end_time + timedelta(hours=7)
-    
+
     return start_time, end_time
 
 def load_stimulus(event_full_path, start_time, end_time):
@@ -131,22 +131,23 @@ def trial_end_sec(row, start_time):
     return (row['end_time']-start_time).total_seconds()
 
 def detect_signal_start(raw, trial_start_sec, dc_channel):
-        dc_data = raw.get_data(picks=dc_channel)
-        threshold = 2 * np.std(dc_data)
-        exceeds_threshold = np.where(dc_data[0] > threshold)[0]
-        
-        # Convert trial start time (in seconds) to sample index
-        start_sample = int(trial_start_sec * raw.info['sfreq'])
-        
-        # Find the first exceedance after the start_sample
-        signal_start_samples = exceeds_threshold[exceeds_threshold > start_sample]
-        
-        if signal_start_samples.size > 0:
-            signal_start_sample = signal_start_samples[0]
-            signal_start_time = signal_start_sample / raw.info['sfreq']
-            return signal_start_sample, signal_start_time
-        else:
-            return None, None  # No signal detected
+    dc_data = raw.get_data(picks=dc_channel)
+
+    threshold = 2 * np.std(dc_data)
+    exceeds_threshold = np.where(dc_data[0] > threshold)[0]
+    
+    # Convert trial start time (in seconds) to sample index
+    start_sample = int(trial_start_sec * raw.info['sfreq'])
+    
+    # Find the first exceedance after the start_sample
+    signal_start_samples = exceeds_threshold[exceeds_threshold > start_sample]
+    
+    if signal_start_samples.size > 0:
+        signal_start_sample = signal_start_samples[0]
+        signal_start_time = signal_start_sample / raw.info['sfreq']
+        return signal_start_sample, signal_start_time
+    else:
+        return None, None  # No signal detected
         
 def preprocess_stim(raw, stim_csv_path, config, start_time, end_time, dc_channel):
     # Pre-processing EEG data
