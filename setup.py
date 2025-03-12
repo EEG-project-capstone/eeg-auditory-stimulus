@@ -16,6 +16,6 @@ setup(
     python_requires=">=3.6",
     include_package_data=True,
     package_data={
-        "": ["configs/*.yml"],  # Include YAML config files
+        "eeg_auditory_stimulus": ["configs/*.yml"],  # Include YAML config files
     },
 )
