@@ -24,27 +24,15 @@ from preprocessing.save_functions import save_log, save_plot
 # Set the backend for Matplotlib
 matplotlib.use('Qt5Agg')
 
-# Add parent directory to sys.path
-# sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-# MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-# CONFIG_PATH = os.path.join(MODULE_DIR, "configs", "claassen_cfg.yml")
-
 # # Load Configuration
 # Get the absolute path of the project root directory
-# PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
-# CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
-# SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# CONFIG_PATH = os.path.join(SCRIPT_DIR, '..', '..', 'configs', 'claassen_cfg.yml')
-CONFIG_PATH = '/Users/joobeejung/brain-waves-2.0/data/configs/claassen_cfg.yml'
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
+CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
 
 def load_config():
-    """Loads the configuration file safely."""
-    if not os.path.exists(CONFIG_PATH):
-        raise FileNotFoundError(f"Config file not found: {CONFIG_PATH}")
-
+    """Load the configuration file."""
     with open(CONFIG_PATH, 'r') as file:
         return yaml.safe_load(file)
-
 
 config = load_config()
 
