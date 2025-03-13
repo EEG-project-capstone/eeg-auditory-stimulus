@@ -391,6 +391,7 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
     return plt
 
 def run_analysis(subject_id, dir, date_str):
+    print('===========start run analysis================')
     subject_id = subject_id # "CON002" #CON001a, CON001b, CON002, CON003, CON004, CON005
     base_dir = os.path.join(os.getcwd(), dir)
     bands = ((1,3), (4,7), (8,13), (14,30))
@@ -400,12 +401,17 @@ def run_analysis(subject_id, dir, date_str):
     
     # Create the directory if it doesn't exist
     os.makedirs(patient_folder, exist_ok=True)
+    print('===========create directory================')
 
     try:
+        print('===========start load eeg================')
         raw, dc_channel, subject_id = load_eeg_data(subject_id)
+        print('===========start save eeg plot================')
         save_plot(subject_id, patient_folder, raw.plot(), 'raw_eeg_plot')
 
+        print('===========start process_trials================')
         df = process_trials(raw, subject_id, dc_channel)
+        print('===========start generate_epochs================')
         events, metadata = generate_epochs(raw, df)
 
         np.set_printoptions(threshold=np.inf)
