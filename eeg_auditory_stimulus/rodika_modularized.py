@@ -1,5 +1,6 @@
 
 import os
+import sys
 import numpy as np
 import pandas as pd
 import mne
@@ -7,6 +8,10 @@ from mne.preprocessing import ICA
 import matplotlib.pyplot as plt
 from scipy.fft import fft
 from datetime import timedelta
+import sklearn
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from preprocessing.save_functions import save_log, save_plot
 
 def load_and_preprocess_eeg(eeg_file_path, use_channels=None, bad_channels=None):
     """
@@ -383,58 +388,91 @@ def compute_itpc(epochs_data, fs=256):
     
     return itpc, freqs, phase_data
 
-def plot_itpc_each_channel(itpc, freqs, ch_names, fmin=0.5, fmax=4, out_dir=None):
+def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None, 
+                           fmin=0.5, fmax=4.0):
     """
-    Plot ITPC values for each channel in separate figures.
-    
-    Parameters:
-    -----------
+    Plot ITPC values for each channel in separate figures, optionally saving them
+    via save_plot(), with shaded bands for specific frequencies.
+
+    Parameters
+    ----------
     itpc : ndarray
-        ITPC array of shape (n_frequencies, n_channels)
+        ITPC array of shape (n_frequencies, n_channels).
     freqs : ndarray
-        Frequency values (can include both negative and positive frequencies)
+        Frequency values (can include both negative and positive frequencies).
     ch_names : list
-        List of channel names
+        List of channel names.
+    patient_id : str or None
+        Patient identifier, used to create a folder if saving plots.
+    base_dir : str or None
+        Base directory for saving plots with save_plot(). If None, figures are shown but not saved.
     fmin : float
-        Minimum frequency to display on the x-axis
+        Minimum frequency to display on the x-axis.
     fmax : float
-        Maximum frequency to display on the x-axis
+        Maximum frequency to display on the x-axis.
     """
-    # Select only positive frequencies up to fmax
-    if out_dir is not None:
-        os.makedirs(out_dir, exist_ok=True)
-   
+    # Frequency bands to highlight (±0.04 Hz)
+    band_width = 0.04
+    highlight_data = [
+        ('teal',  0.78 - band_width,  0.78 + band_width,  '≈0.78 Hz'),
+        ('magenta',  1.56 - band_width,  1.56 + band_width,  '≈1.56 Hz'),
+        ('red',  3.125 - band_width, 3.125 + band_width, '≈3.125 Hz')
+    ]
+    
     pos_idx = (freqs >= 0) & (freqs <= fmax)
     plot_freqs = freqs[pos_idx]
     n_channels = itpc.shape[1]
     
     for ch in range(n_channels):
         channel_itpc = itpc[pos_idx, ch]
-        plt.figure(figsize=(8, 5))
-        plt.plot(plot_freqs, channel_itpc, color='b')
+        
+        # Create new figure for each channel
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(plot_freqs, channel_itpc, color='b', label='ITPC')
         
         if ch_names:
             title = f'ITPC for {ch_names[ch]}'
-            filename = f'{ch_names[ch]}_ITPC.png'
+            filename = f'ITPC_{ch_names[ch]}'  # We'll pass this to save_plot
         else:
             title = f'ITPC for Channel {ch+1}'
-            filename = f'Channel_{ch+1}_ITPC.png'
+            filename = f'ITPC_Channel_{ch+1}'
         
-        plt.title(f'ITPC for {ch_names[ch]}')
-        plt.xlabel('Frequency (Hz)')
-        plt.ylabel('ITPC')
-        plt.xlim(fmin, fmax)
-        plt.grid(True)
+        ax.set_title(title)
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('ITPC')
+        ax.set_xlim(fmin, fmax)
+        ax.grid(True)
 
-        if out_dir is not None:
-            save_path = os.path.join(out_dir, filename)
-            plt.savefig(save_path)
-            print(f'Saved {save_path}')
+        # Add shaded bands for each target frequency
+        for color, f_start, f_end, label in highlight_data:
+            # Only shade if the band is within our displayed range
+            if f_end >= fmin and f_start <= fmax:
+                ax.axvspan(max(f_start, fmin), min(f_end, fmax),
+                           color=color, alpha=0.2, label=label)
 
-def plot_itpc_avg(itpc, freqs, fmin=0.5, fmax=4, out_dir=None):
+        ax.legend(loc='upper right')
+        
+        # Save or show
+        if base_dir is not None and patient_id is not None:
+            plot_path = save_plot(
+                patient_id=patient_id, 
+                base_dir=base_dir, 
+                fig=fig, 
+                filename=filename
+            )
+            print(f"Saved {plot_path}")
+        else:
+            plt.show()
+
+        plt.close(fig)  # Close the figure to free memory after each loop
+
+
+def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None, 
+                  fmin=0.5, fmax=4.0):
     """
     Plot the average Inter-Trial Phase Coherence (ITPC) across electrodes 
-    for frequencies in a specified range, and optionally save the figure.
+    for frequencies in a specified range, optionally saving the figure,
+    including shaded bands for specific frequencies.
 
     Parameters
     ----------
@@ -443,12 +481,14 @@ def plot_itpc_avg(itpc, freqs, fmin=0.5, fmax=4, out_dir=None):
         values across frequencies and electrodes.
     freqs : ndarray
         1D array of frequency values (same length as itpc's first dimension).
-    fmin : float, optional
-        The minimum frequency to display on the x-axis, by default 0.5 Hz.
-    fmax : float, optional
-        The maximum frequency to display on the x-axis, by default 4 Hz.
-    out_dir : str or None, optional
-        Directory path to save the plot. If None, the plot will not be saved.
+    patient_id : str or None
+        Patient identifier, used to create a folder if saving plots.
+    base_dir : str or None
+        Base directory for saving plots with save_plot(). If None, figures are shown but not saved.
+    fmin : float
+        Minimum frequency to display on the x-axis.
+    fmax : float
+        Maximum frequency to display on the x-axis.
 
     Returns
     -------
@@ -456,15 +496,17 @@ def plot_itpc_avg(itpc, freqs, fmin=0.5, fmax=4, out_dir=None):
         1D array of shape (n_selected_frequencies,) representing the average 
         ITPC values across electrodes within the specified frequency range.
     plot_freqs : ndarray
-        1D array of the frequency values corresponding to the selected 
+        1D array of the frequency values corresponding to the selected
         frequency range.
     """   
+    # Frequency bands to highlight (±0.04 Hz)
+    band_width = 0.04
+    highlight_data = [
+        ('teal',  0.78 - band_width,  0.78 + band_width,  '≈0.78 Hz'),
+        ('magenta',  1.56 - band_width,  1.56 + band_width,  '≈1.56 Hz'),
+        ('red',  3.125 - band_width, 3.125 + band_width, '≈3.125 Hz')
+    ]
     
-    # Select only positive frequencies up to fmax
-    if out_dir is not None:
-        os.makedirs(out_dir, exist_ok=True)
-   
-    # Get positive frequencies and corresponding ITPC values
     pos_idx = (freqs >= 0) & (freqs <= fmax)
     plot_freqs = freqs[pos_idx]
     plot_itpc = itpc[pos_idx, :]
@@ -473,34 +515,47 @@ def plot_itpc_avg(itpc, freqs, fmin=0.5, fmax=4, out_dir=None):
     avg_itpc = np.mean(plot_itpc, axis=1)
     
     # Plot
-    plt.figure(figsize=(10, 6))
-    plt.plot(plot_freqs, avg_itpc)
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('ITPC')
-    plt.title('Inter-Trial Phase Coherence')
-    plt.xlim(fmin, fmax)
-    plt.ylim(0.01, 0.5)
-    plt.grid(True)
-    
-    if out_dir is not None:
-        fig_path = os.path.join(out_dir, 'avg_itpc_plot.png')
-        plt.savefig(fig_path)  
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(plot_freqs, avg_itpc, label='Avg ITPC', color='b')
+    ax.set_xlabel('Frequency (Hz)')
+    ax.set_ylabel('ITPC')
+    ax.set_title('Inter-Trial Phase Coherence (Averaged)')
+    ax.set_xlim(fmin, fmax)
+    ax.set_ylim(0.01, 0.5)
+    ax.grid(True)
 
-def main():
+    # Add shaded bands for each target frequency
+    for color, f_start, f_end, label in highlight_data:
+        if f_end >= fmin and f_start <= fmax:
+            ax.axvspan(max(f_start, fmin), min(f_end, fmax),
+                       color=color, alpha=0.2, label=label)
+
+    ax.legend(loc='upper right')
+
+    # Save or show
+    if base_dir is not None and patient_id is not None:
+        filename = "avg_itpc_plot"
+        plot_path = save_plot(
+            patient_id=patient_id, 
+            base_dir=base_dir, 
+            fig=fig, 
+            filename=filename
+        )
+        print(f"Saved {plot_path}")
+    else:
+        plt.show()
+    
+    plt.close(fig)
+    return avg_itpc, plot_freqs
+
+def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs):
     """
     Main function orchestrating the entire EEG analysis pipeline: 
     loading, preprocessing, stimulus alignment, epoching, ICA, 
     referencing, ITPC computation, and plotting.
     """
-    # 1. Define your parameters here (or load them from a config)
-    eeg_file_path = "CON003_clipped.EDF"
-    stimulus_csv_path = "patient_df.csv"
-    patient_id = "CON003"
-    
-    use_channels = ['C3','C4','O1','O2','FT9','FT10','Cz','F3','F4','F7','F8',
-                    'Fz','Fp1','Fp2','Fpz','P3','P4','Pz','T7','T8','P7','P8']
-    bad_channels = ['Fp1', 'Fp2', 'T7', 'F8', 'F7']
-    
+    #1. Define your parameters here 
+
     # 2. Load and preprocess EEG data
     raw = load_and_preprocess_eeg(
         eeg_file_path=eeg_file_path,
@@ -536,7 +591,7 @@ def main():
     ica, _ = apply_ica(
         data=raw,   # Usually we fit ICA on continuous data
         n_components=15,
-        eog_ch='Fpz',
+        eog_ch= eog_chs,
         threshold=1
     )
     epochs_clean = epochs.copy()
@@ -562,26 +617,38 @@ def main():
     itpc, freqs, phase_data = compute_itpc(epochs_data=epochs_data, fs=fs)
     
     # 9. Plot results (individual channels + average)
-    out_dir = "plots"  # folder to save figures
+    base_dir = "results/lang_tracking"       # The parent directory where patient-specific folders go
+
     plot_itpc_each_channel(
-        itpc=itpc,
-        freqs=freqs,
-        ch_names=epochs_clean.info['ch_names'],
-        fmin=0.5,
-        fmax=4,
-        out_dir=out_dir
+    itpc=itpc,
+    freqs=freqs,
+    ch_names=epochs_clean.info['ch_names'],
+    fmin=0.5,
+    fmax=4,
+    patient_id=patient_id,
+    base_dir=base_dir
     )
+
     plot_itpc_avg(
-        itpc=itpc,
-        freqs=freqs,
-        fmin=0.5,
-        fmax=4,
-        out_dir=out_dir
+    itpc=itpc,
+    freqs=freqs,
+    fmin=0.5,
+    fmax=4,
+    patient_id=patient_id,
+    base_dir=base_dir
     )
     
 if __name__ == "__main__":
     # Entry point to run the main function
-    main()
+    eeg_file_path = "/Users/trishaprasant/Documents/DATA590/CON004_clipped.EDF"
+    stimulus_csv_path = "/Users/trishaprasant/Documents/DATA590/patient_df.csv"
+    patient_id = "CON004"
+    use_channels = ['C3','C4','O1','O2','FT9','FT10','Cz','F3','F4','F7','F8',
+                    'Fz','Fp1','Fp2','Fpz','P3','P4','Pz','T7','T8','P7','P8']
+    bad_channels = ['T7', 'Fp1', 'Fp2']
+    eog_chs = ['Fp1', 'Fp2', 'T7']
+
+    main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs)
 
 '''
 EXAMPLE USAGE:
