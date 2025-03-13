@@ -332,7 +332,8 @@ def permutation_test(clf, psd_data, epochs, cv, subject_id, base_dir, n_permutat
     p_value = np.mean(np.array(permutation_scores) >= observed_score)
     save_log(subject_id, base_dir, f"Permutation p-value = {p_value:.4f}")
     print(f"Permutation p-value = {p_value:.4f}")
-
+    
+    plt.figure(figsize=(10, 5))
     plt.hist(permutation_scores, bins=30, alpha=0.7, label='Permutation scores')
     plt.axvline(observed_score, color='red', linestyle='--', label='Observed score')
     plt.xlabel('ROC AUC Score')
