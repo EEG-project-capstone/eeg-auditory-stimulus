@@ -22,7 +22,7 @@ from preprocessing.eeg_loader import load_eeg, get_eeg_timestamps, load_stimulus
 from preprocessing.save_functions import save_log, save_plot
 
 # Set the backend for Matplotlib
-matplotlib.use('Qt5Agg')
+matplotlib.use('Agg') #Qt5Agg
 
 # # Load Configuration
 # Get the absolute path of the project root directory
