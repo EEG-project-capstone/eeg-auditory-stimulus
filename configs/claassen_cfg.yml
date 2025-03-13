@@ -4,6 +4,7 @@ CON001b_path: /Users/joobeejung/EEG_DATA/X~ X_86b44d5d-5036-4748-b666-ceff710a1e
 CON002_path: /Users/joobeejung/EEG_DATA/CON002_20240924.EDF
 CON003_path: /Users/joobeejung/EEG_DATA/CON003_clipped.EDF
 CON004_path: /Users/joobeejung/EEG_DATA/CON004_clipped.EDF
+CON005_path: /Users/joobeejung/EEG_DATA/CON005_clipped.EDF
 event_full_path: /Users/joobeejung/EEG_DATA/patient_df.csv
 verbose: False
 l_freq: 1
@@ -15,6 +16,7 @@ CON001b_channels: [Fp1, Fp2, Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4,
 CON002_channels: [Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
 CON003_channels: [Fz, F3, F4, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
 CON004_channels: [Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
+CON005_channels: [Fp1, Fp2, Fz, F3, F4, F7, F8, Cz, C3, C4, T3, T4, Pz, P3, P4, T5, T6, O1, O2]
 channel_map: {'T7': 'T3', 'T8': 'T4', 'P7': 'T5', 'P8': 'T6'}
 trial_type: ['lcmd', 'rcmd']
-dc_threshold: 0.01
+dc_threshold: 0.005

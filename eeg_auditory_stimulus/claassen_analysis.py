@@ -35,6 +35,9 @@ def load_config():
     with open(CONFIG_PATH, 'r') as file:
         return yaml.safe_load(file)
 
+# pip install --upgrade --force-reinstall git+https://github.com/EEG-project-capstone/eeg-auditory-stimulus.git@jb-modules
+
+
 config = load_config()
 
 # Load EEG data
@@ -126,7 +129,7 @@ def generate_epochs(raw, df):
     return events, metadata
 
 # Plot trial/instruction/epoch structure
-def plot_instructions_and_epochs(instructions, events, output_filename='plot_output.png'):
+def plot_instructions_and_epochs(instructions, events):
     """Plot trial/instruction/epoch structure and save the plot."""
     plt.figure(figsize=(10, 5))
     plt.scatter(instructions[:, 0], instructions[:, 2], color=['g', 'r'] * (len(instructions) // 2), marker='s', label='Instruction offset')
@@ -137,7 +140,7 @@ def plot_instructions_and_epochs(instructions, events, output_filename='plot_out
     plt.gca().set_yticklabels(['Keep moving...', 'Stop moving...'])
     plt.legend()
     plt.grid(True)
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    # plt.savefig(output_filename, dpi=300, bbox_inches='tight')
 
     return plt
 
@@ -387,9 +390,68 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
 
     return plt
 
+def run_analysis(subject_id, dir, date_str):
+    subject_id = subject_id # "CON002" #CON001a, CON001b, CON002, CON003, CON004, CON005
+    base_dir = os.path.join(os.getcwd(), dir)
+    bands = ((1,3), (4,7), (8,13), (14,30))
+    
+    # Create a folder for the patient and date (if not exists)
+    patient_folder = os.path.join(base_dir, f"{subject_id}_{date_str}")
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(patient_folder, exist_ok=True)
+
+    try:
+        raw, dc_channel, subject_id = load_eeg_data(subject_id)
+        save_plot(subject_id, patient_folder, raw.plot(), 'raw_eeg_plot')
+
+        df = process_trials(raw, subject_id, dc_channel)
+        events, metadata = generate_epochs(raw, df)
+
+        np.set_printoptions(threshold=np.inf)
+        previous_values = [0] * len(df)
+        event_ids = df['event_id'].tolist()  # Removed addition of a final event
+        instructions = np.column_stack([df['start_sample'], previous_values, event_ids])
+        epochs_plt = plot_instructions_and_epochs(instructions, events)
+        save_plot(subject_id, patient_folder, epochs_plt, 'instructions_epochs')
+        
+        epochs = preprocess_epochs(raw, events, metadata, subject_id)
+        save_plot(subject_id, patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'prerpocess_epochs_plot')
+        
+        psds_all_epochs, freqs = compute_psd(epochs)
+        psd_data = extract_band_psd(psds_all_epochs, freqs, bands)
+
+        # Define cross validation
+        cv = LeaveOneGroupOut()
+        cv_plt = plot_cross_validation(cv, epochs, psd_data)
+        save_plot(subject_id, patient_folder, cv_plt, 'cross_validation')
+
+        clf = define_classifier()
+        # Decoding performance over time
+        prob_plt = decode_performance(clf, psd_data, epochs, cv)
+        save_plot(subject_id, patient_folder, prob_plt, 'average_predicted_probability')
+
+        # Topo Map
+        topo_plt = plot_topo_map(clf, psd_data, epochs, bands)
+        save_plot(subject_id, patient_folder, topo_plt, 'topo_map')
+
+        # Computing cross-validated AUC scores
+        mean_score, scores = compute_auc(clf, psd_data, epochs, cv, subject_id, patient_folder)
+
+        # Performing permutation test
+        p_value, permutation_scores, observed_score, dis_plt = permutation_test(clf, psd_data, epochs, cv, subject_id, patient_folder, n_permutations=500)
+        save_plot(subject_id, patient_folder, dis_plt, 'permutation_distribution')
+        
+        perm_plt = plot_permutation_test(permutation_scores, scores, observed_score, subject_id, patient_folder, n_permutations=500)
+        save_plot(subject_id, patient_folder, perm_plt, 'permutation_plt')
+
+    except Exception as e:
+        save_log(subject_id, patient_folder, f"Error: {str(e)}")
+
+
 # Main processing flow
 def main():
-    subject_id = "CON001b" #CON001a, CON001b, CON002, CON003, CON004
+    subject_id = "CON002" #CON001a, CON001b, CON002, CON003, CON004, CON005
     base_dir = os.path.join(os.getcwd(), 'data')
     bands = ((1,3), (4,7), (8,13), (14,30))
 
@@ -404,7 +466,7 @@ def main():
         previous_values = [0] * len(df)
         event_ids = df['event_id'].tolist()  # Removed addition of a final event
         instructions = np.column_stack([df['start_sample'], previous_values, event_ids])
-        epochs_plt = plot_instructions_and_epochs(instructions, events, output_filename = 'plot_output.png')
+        epochs_plt = plot_instructions_and_epochs(instructions, events)
         save_plot(subject_id, base_dir, epochs_plt, 'instructions_epochs')
         
         epochs = preprocess_epochs(raw, events, metadata, subject_id)

@@ -17,12 +17,15 @@ def read_file(eeg_path):
 def get_dc_channels(raw, threshold):
     # Get the channel names and pick only DC channels
     dc_channels = [ch for ch in raw.ch_names if 'DC' in ch]
-    dc_picks = mne.pick_channels(raw.ch_names, include=dc_channels)
+    print("dc_channels------> ", dc_channels)
 
+    dc_picks = mne.pick_channels(raw.ch_names, include=dc_channels)
+    print("dc_picks------> ", dc_picks)
     signal_channels = []
     # Check which DC channels exceed the threshold
     for idx in dc_picks:
         data = raw.get_data(picks=idx)  # Extract data for the channel
+        print('data -- idx', idx, '|', data)
         if np.any(data > threshold):  # Check if any value exceeds the threshold
             signal_channels.append(raw.ch_names[idx])
     print(f"DC channels with signals: {signal_channels}")
@@ -58,7 +61,6 @@ def load_eeg(eeg_path, config, subject=None):
     # Change DC channels types
     channel_type_mapping = {ch: 'misc' for ch in raw.info['ch_names'] if "DC" in ch}
     raw.set_channel_types(channel_type_mapping)
-
     # Pick channels
     missing_channels = [x for x in config['channels'] if x not in raw.info['ch_names']]
     if len(missing_channels) > 0:
@@ -70,10 +72,15 @@ def load_eeg(eeg_path, config, subject=None):
         channels = config['channels']
     elif subject == "CON004":
         channels = config['CON004_channels']
+    elif subject == "CON005":
+        channels = config['CON005_channels']
     else:
         channels = config['channels']
-    channels = config['channels']
+    print("channels ===> ", channels)
+
+    # channels = config['channels']
     dc_channel = get_dc_channels(raw, config['dc_threshold'])
+    print("dc_channel ===> ", dc_channel)
     channels.extend(dc_channel)
     channels = list(set(channels))
     raw.pick(channels)
@@ -91,7 +98,7 @@ def get_eeg_timestamps(raw_data, subject=None):
     end_time = start_time + duration
 
     # Adjust EEG System time to UTC time
-    if subject in ("CON003","CON004"): # Summertime setting
+    if subject in ("CON003","CON004","CON005"): # Summertime setting
         start_time = start_time + timedelta(hours=8)
         end_time = end_time + timedelta(hours=8)
     else:
