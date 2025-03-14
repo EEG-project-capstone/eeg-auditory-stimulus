@@ -17,15 +17,11 @@ def read_file(eeg_path):
 def get_dc_channels(raw, threshold):
     # Get the channel names and pick only DC channels
     dc_channels = [ch for ch in raw.ch_names if 'DC' in ch]
-    print("dc_channels------> ", dc_channels)
-
     dc_picks = mne.pick_channels(raw.ch_names, include=dc_channels)
-    print("dc_picks------> ", dc_picks)
     signal_channels = []
     # Check which DC channels exceed the threshold
     for idx in dc_picks:
         data = raw.get_data(picks=idx)  # Extract data for the channel
-        print('data -- idx', idx, '|', data)
         if np.any(data > threshold):  # Check if any value exceeds the threshold
             signal_channels.append(raw.ch_names[idx])
     print(f"DC channels with signals: {signal_channels}")

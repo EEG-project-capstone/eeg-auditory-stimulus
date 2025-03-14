@@ -22,7 +22,7 @@ from preprocessing.eeg_loader import load_eeg, get_eeg_timestamps, load_stimulus
 from preprocessing.save_functions import save_log, save_plot
 
 # Set the backend for Matplotlib
-matplotlib.use('Qt5Agg')
+matplotlib.use('Agg') # Qt5Agg
 
 # # Load Configuration
 # Get the absolute path of the project root directory
@@ -34,9 +34,6 @@ def load_config():
     """Load the configuration file."""
     with open(CONFIG_PATH, 'r') as file:
         return yaml.safe_load(file)
-
-# pip install --upgrade --force-reinstall git+https://github.com/EEG-project-capstone/eeg-auditory-stimulus.git@jb-modules
-
 
 config = load_config()
 
@@ -362,7 +359,6 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
     plt.ylabel('Frequency')
     plt.legend()
     plt.title('Permutation Test Null Distribution')
-    plt.show()
     
     # Compute p-value
     n_higher = sum(s >= scores.mean(0) for s in permutation_scores)
