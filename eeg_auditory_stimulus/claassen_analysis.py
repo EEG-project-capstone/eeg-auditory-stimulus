@@ -22,7 +22,7 @@ from preprocessing.eeg_loader import load_eeg, get_eeg_timestamps, load_stimulus
 from preprocessing.save_functions import save_log, save_plot
 
 # Set the backend for Matplotlib
-matplotlib.use('Agg') #Qt5Agg
+matplotlib.use('Qt5Agg')
 
 # # Load Configuration
 # Get the absolute path of the project root directory
@@ -423,7 +423,7 @@ def run_analysis(subject_id, dir, date_str):
         save_plot(subject_id, patient_folder, epochs_plt, 'instructions_epochs')
         
         epochs = preprocess_epochs(raw, events, metadata, subject_id)
-        save_plot(subject_id, patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'prerpocess_epochs_plot')
+        save_plot(subject_id, patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'preprocess_epochs_plot')
         
         psds_all_epochs, freqs = compute_psd(epochs)
         psd_data = extract_band_psd(psds_all_epochs, freqs, bands)

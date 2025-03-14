@@ -9,8 +9,8 @@ def save_log(patient_id, base_dir, log_data):
     
     # os.makedirs(patient_folder, exist_ok=True)
     
-    # log_path = os.path.join(patient_folder, filename)
-    with open(base_dir, "a") as log_file:  # Open file in append mode
+    log_path = os.path.join(base_dir, filename)
+    with open(log_path, "a") as log_file:  # Open file in append mode
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_file.write(f"[{timestamp}] {log_data}\n")  # Append timestamped log entry
     
