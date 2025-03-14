@@ -120,6 +120,7 @@ def load_stimulus(event_full_path, start_time, end_time):
     ptc_df['end_str'] = ptc_df[('end_time', 'max')].dt.strftime('%Y-%m-%d %H:%M:%S')
     ptc_df = ptc_df.drop(columns=[('start_time', 'max'), ('start_time', 'min'), ('end_time', 'min'), ('end_time', 'max')])
     patient_id = ptc_df.loc[(ptc_df['start'] > start_time) & (ptc_df['end'] < end_time),'patient_id']
+    
     if len(patient_id.index) == 1:
         patient_id = patient_id.values[0]
     else:
