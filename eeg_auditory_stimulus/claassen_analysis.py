@@ -307,7 +307,7 @@ def compute_auc(clf, psd_data, epochs, cv, subject_id, base_dir):
     )
 
     mean_score = scores.mean(0)
-    save_log(subject_id, base_dir, f'Mean scores across split: AUC={mean_score:.3f}')
+    save_log(base_dir, f'Mean scores across split: AUC={mean_score:.3f}')
     print(f'Mean scores across split: AUC={mean_score:.3f}')
     return mean_score, scores
 
@@ -341,7 +341,7 @@ def permutation_test(clf, psd_data, epochs, cv, subject_id, base_dir, n_permutat
     ).mean(0)
 
     p_value = np.mean(np.array(permutation_scores) >= observed_score)
-    save_log(subject_id, base_dir, f"Permutation p-value = {p_value:.4f}")
+    save_log(base_dir, f"Permutation p-value = {p_value:.4f}")
     print(f"Permutation p-value = {p_value:.4f}")
     
     plt.figure(figsize=(10, 5))
@@ -378,9 +378,9 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
     n_higher = sum(s >= scores.mean(0) for s in permutation_scores)
     pvalue = (n_higher + 1.) / (n_permutations + 1.)
 
-    save_log(subject_id, base_dir, f"Empirical AUC = {scores.mean(0):.2f} +/- {scores.std(0):.2f}")
-    save_log(subject_id, base_dir, f"Shuffle AUC = {np.mean(permutation_scores, 0):.2f}")
-    save_log(subject_id, base_dir, f"p-value = {pvalue:.4f}")    
+    save_log(base_dir, f"Empirical AUC = {scores.mean(0):.2f} +/- {scores.std(0):.2f}")
+    save_log(base_dir, f"Shuffle AUC = {np.mean(permutation_scores, 0):.2f}")
+    save_log(base_dir, f"p-value = {pvalue:.4f}")    
     print("Empirical AUC = %.2f +/- %.2f" % (scores.mean(0), scores.std(0)))
     print("Shuffle AUC = %.2f" % np.mean(permutation_scores, 0))
     print("p-value = %.4f" % pvalue)
@@ -462,7 +462,7 @@ def run_analysis(subject_id, dir, edf_dir, date_str):
         save_plot(subject_id, patient_folder, perm_plt, 'permutation_plt')
 
     except Exception as e:
-        save_log(subject_id, patient_folder, f"Error: {str(e)}")
+        save_log(patient_folder, f"Error: {str(e)}")
 
 
 # Main processing flow
@@ -516,7 +516,7 @@ def main():
         save_plot(subject_id, base_dir, perm_plt, 'permutation_results')
 
     except Exception as e:
-        save_log(subject_id, base_dir, f"Error: {str(e)}")
+        save_log(base_dir, f"Error: {str(e)}")
 
 if __name__ == "__main__":
     main()
