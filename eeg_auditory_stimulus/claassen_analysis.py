@@ -66,9 +66,9 @@ def load_eeg_data(subject_id=None, edf_dir=None):
     return raw, dc_channel, subject_id
 
 # Process trials and segment into epochs
-def process_trials(raw, subject_id, dc_channel):
+def process_trials(raw, subject_id, dc_channel, patient_df_path):
     start_time, end_time = get_eeg_timestamps(raw, subject_id)
-    df, patient_id = load_stimulus(config["event_full_path"], start_time, end_time)
+    df, patient_id = load_stimulus(patient_df_path, start_time, end_time)
     
     patient_trial = df.loc[(df['patient_id'] == patient_id) & (df['trial_type'].isin(config['trial_type']))]
 
@@ -401,7 +401,7 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
 
     return plt
 
-def run_analysis(subject_id, dir, edf_dir, date_str):
+def run_analysis(subject_id, dir, edf_dir, patient_df_path, date_str):
     print('===========start run analysis================')
     subject_id = subject_id #CON001a, CON001b, CON002, CON003, CON004, CON005
     base_dir = os.path.join(os.getcwd(), dir)
@@ -420,7 +420,7 @@ def run_analysis(subject_id, dir, edf_dir, date_str):
         # save_plot(subject_id, patient_folder, raw.plot(), 'raw_eeg_plot')
 
         print('===========start process_trials================')
-        df = process_trials(raw, subject_id, dc_channel)
+        df = process_trials(raw, subject_id, dc_channel, patient_df_path)
         print('===========start generate_epochs================')
         events, metadata = generate_epochs(raw, df)
 
