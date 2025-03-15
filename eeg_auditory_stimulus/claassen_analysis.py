@@ -417,7 +417,7 @@ def run_analysis(subject_id, dir, edf_dir, patient_df_path, date_str):
     try:
         print('===========start load eeg================')
         raw, dc_channel, subject_id = load_eeg_data(subject_id, edf_dir)
-        # save_plot(subject_id, patient_folder, raw.plot(), 'raw_eeg_plot')
+        # save_plot(patient_folder, raw.plot(), 'raw_eeg_plot')
 
         print('===========start process_trials================')
         df = process_trials(raw, subject_id, dc_channel, patient_df_path)
@@ -429,10 +429,10 @@ def run_analysis(subject_id, dir, edf_dir, patient_df_path, date_str):
         event_ids = df['event_id'].tolist()  # Removed addition of a final event
         instructions = np.column_stack([df['start_sample'], previous_values, event_ids])
         epochs_plt = plot_instructions_and_epochs(instructions, events)
-        save_plot(subject_id, patient_folder, epochs_plt, 'instructions_epochs')
+        save_plot(patient_folder, epochs_plt, 'instructions_epochs')
         
         epochs = preprocess_epochs(raw, events, metadata, subject_id)
-        # save_plot(subject_id, patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'preprocess_epochs_plot')
+        # save_plot(patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'preprocess_epochs_plot')
         
         psds_all_epochs, freqs = compute_psd(epochs)
         psd_data = extract_band_psd(psds_all_epochs, freqs, bands)
@@ -440,26 +440,26 @@ def run_analysis(subject_id, dir, edf_dir, patient_df_path, date_str):
         # Define cross validation
         cv = LeaveOneGroupOut()
         cv_plt = plot_cross_validation(cv, epochs, psd_data)
-        save_plot(subject_id, patient_folder, cv_plt, 'cross_validation')
+        save_plot(patient_folder, cv_plt, 'cross_validation')
 
         clf = define_classifier()
         # Decoding performance over time
         prob_plt = decode_performance(clf, psd_data, epochs, cv)
-        save_plot(subject_id, patient_folder, prob_plt, 'average_predicted_probability')
+        save_plot(patient_folder, prob_plt, 'average_predicted_probability')
 
         # Topo Map
         topo_plt = plot_topo_map(clf, psd_data, epochs, bands)
-        save_plot(subject_id, patient_folder, topo_plt, 'topo_map')
+        save_plot(patient_folder, topo_plt, 'topo_map')
 
         # Computing cross-validated AUC scores
         mean_score, scores = compute_auc(clf, psd_data, epochs, cv, subject_id, patient_folder)
 
         # Performing permutation test
         p_value, permutation_scores, observed_score, dis_plt = permutation_test(clf, psd_data, epochs, cv, subject_id, patient_folder, n_permutations=500)
-        save_plot(subject_id, patient_folder, dis_plt, 'permutation_distribution')
+        save_plot(patient_folder, dis_plt, 'permutation_distribution')
         
         perm_plt = plot_permutation_test(permutation_scores, scores, observed_score, subject_id, patient_folder, n_permutations=500)
-        save_plot(subject_id, patient_folder, perm_plt, 'permutation_plt')
+        save_plot(patient_folder, perm_plt, 'permutation_plt')
 
     except Exception as e:
         save_log(patient_folder, f"Error: {str(e)}")
