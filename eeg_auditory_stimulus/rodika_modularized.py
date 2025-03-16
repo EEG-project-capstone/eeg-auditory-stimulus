@@ -12,7 +12,9 @@ import sklearn
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from preprocessing.save_functions import save_log, save_plot
-base_dir = "data/results/lang_tracking"
+base_dir = os.path.join("data/results/lang_tracking", patient_id)
+# Ensure the directory exists before saving images
+os.makedirs(base_dir, exist_ok=True)
 
 def load_and_preprocess_eeg(eeg_file_path, use_channels=None, bad_channels=None):
     """
@@ -389,8 +391,7 @@ def compute_itpc(epochs_data, fs=256):
     
     return itpc, freqs, phase_data
 
-def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None, 
-                           fmin=0.5, fmax=4.0):
+def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None,fmin=0.5, fmax=4.0):
     """
     Plot ITPC values for each channel in separate figures, optionally saving them
     via save_plot(), with shaded bands for specific frequencies.
@@ -548,7 +549,7 @@ def plot_itpc_avg(itpc, freqs, base_dir=None,
     plt.close(fig)
     return avg_itpc, plot_freqs
 
-def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs):
+def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs, output_dir=None):
     """
     Main function orchestrating the entire EEG analysis pipeline: 
     loading, preprocessing, stimulus alignment, epoching, ICA, 
