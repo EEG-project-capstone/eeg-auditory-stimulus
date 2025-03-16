@@ -389,7 +389,7 @@ def compute_itpc(epochs_data, fs=256):
     
     return itpc, freqs, phase_data
 
-def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None, 
+def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None, 
                            fmin=0.5, fmax=4.0):
     """
     Plot ITPC values for each channel in separate figures, optionally saving them
@@ -455,7 +455,7 @@ def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None
         
 
         # Save or show
-        if base_dir is not None and patient_id is not None:
+        if base_dir is not None:
             plot_path = save_plot(
                 base_dir=base_dir, 
                 fig=fig, 
@@ -468,7 +468,7 @@ def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None
         plt.close(fig)  # Close the figure to free memory after each loop
 
 
-def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None, 
+def plot_itpc_avg(itpc, freqs, base_dir=None, 
                   fmin=0.5, fmax=4.0):
     """
     Plot the average Inter-Trial Phase Coherence (ITPC) across electrodes 
@@ -534,7 +534,7 @@ def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None,
     ax.legend(loc='upper right')
 
     # Save or show
-    if base_dir is not None and patient_id is not None:
+    if base_dir is not None:
         filename = "avg_itpc_plot"
         plot_path = save_plot(
             base_dir=base_dir, 
@@ -548,7 +548,7 @@ def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None,
     plt.close(fig)
     return avg_itpc, plot_freqs
 
-def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs):
+def main(eeg_file_path, stimulus_csv_path, use_channels, bad_channels, eog_chs):
     """
     Main function orchestrating the entire EEG analysis pipeline: 
     loading, preprocessing, stimulus alignment, epoching, ICA, 
@@ -622,7 +622,6 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     ch_names=epochs_clean.info['ch_names'],
     fmin=0.5,
     fmax=4,
-    patient_id=patient_id,
     base_dir=base_dir
     )
 
@@ -631,7 +630,6 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     freqs=freqs,
     fmin=0.5,
     fmax=4,
-    patient_id=patient_id,
     base_dir=base_dir
     )
     
