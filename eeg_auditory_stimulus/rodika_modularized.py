@@ -455,7 +455,6 @@ def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None
         # Save or show
         if base_dir is not None and patient_id is not None:
             plot_path = save_plot(
-                patient_id=patient_id, 
                 base_dir=base_dir, 
                 fig=fig, 
                 filename=filename
@@ -536,7 +535,6 @@ def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None,
     if base_dir is not None and patient_id is not None:
         filename = "avg_itpc_plot"
         plot_path = save_plot(
-            patient_id=patient_id, 
             base_dir=base_dir, 
             fig=fig, 
             filename=filename
