@@ -548,7 +548,7 @@ def plot_itpc_avg(itpc, freqs, base_dir=None,
     plt.close(fig)
     return avg_itpc, plot_freqs
 
-def main(eeg_file_path, stimulus_csv_path, use_channels, bad_channels, eog_chs):
+def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs):
     """
     Main function orchestrating the entire EEG analysis pipeline: 
     loading, preprocessing, stimulus alignment, epoching, ICA, 
