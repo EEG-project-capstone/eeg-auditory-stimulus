@@ -615,7 +615,8 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     itpc, freqs, phase_data = compute_itpc(epochs_data=epochs_data, fs=fs)
     
     # 9. Plot results (individual channels + average)
-    base_dir = "data/results/lang_tracking"       # The parent directory where patient-specific folders go
+    base_dir = os.path.join("data", "results", "lang_tracking", patient_id)
+    os.makedirs(base_dir, exist_ok=True)
 
     plot_itpc_each_channel(
     itpc=itpc,
