@@ -12,6 +12,7 @@ import sklearn
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from preprocessing.save_functions import save_log, save_plot
+base_dir = "data/results/lang_tracking"
 
 def load_and_preprocess_eeg(eeg_file_path, use_channels=None, bad_channels=None):
     """
@@ -617,8 +618,6 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     itpc, freqs, phase_data = compute_itpc(epochs_data=epochs_data, fs=fs)
     
     # 9. Plot results (individual channels + average)
-    base_dir = "results/lang_tracking"       # The parent directory where patient-specific folders go
-
     plot_itpc_each_channel(
     itpc=itpc,
     freqs=freqs,
