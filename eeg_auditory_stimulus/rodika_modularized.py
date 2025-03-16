@@ -12,9 +12,6 @@ import sklearn
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from preprocessing.save_functions import save_log, save_plot
-base_dir = os.path.join("data/results/lang_tracking", patient_id)
-# Ensure the directory exists before saving images
-os.makedirs(base_dir, exist_ok=True)
 
 def load_and_preprocess_eeg(eeg_file_path, use_channels=None, bad_channels=None):
     """
@@ -391,7 +388,8 @@ def compute_itpc(epochs_data, fs=256):
     
     return itpc, freqs, phase_data
 
-def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None,fmin=0.5, fmax=4.0):
+def plot_itpc_each_channel(itpc, freqs, ch_names, patient_id=None, base_dir=None, 
+                           fmin=0.5, fmax=4.0):
     """
     Plot ITPC values for each channel in separate figures, optionally saving them
     via save_plot(), with shaded bands for specific frequencies.
@@ -454,10 +452,10 @@ def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None,fmin=0.5, fmax=4
 
         ax.legend(loc='upper right')
         
-
         # Save or show
-        if base_dir is not None:
+        if base_dir is not None and patient_id is not None:
             plot_path = save_plot(
+                patient_id=patient_id, 
                 base_dir=base_dir, 
                 fig=fig, 
                 filename=filename
@@ -469,7 +467,7 @@ def plot_itpc_each_channel(itpc, freqs, ch_names, base_dir=None,fmin=0.5, fmax=4
         plt.close(fig)  # Close the figure to free memory after each loop
 
 
-def plot_itpc_avg(itpc, freqs, base_dir=None, 
+def plot_itpc_avg(itpc, freqs, patient_id=None, base_dir=None, 
                   fmin=0.5, fmax=4.0):
     """
     Plot the average Inter-Trial Phase Coherence (ITPC) across electrodes 
@@ -535,9 +533,10 @@ def plot_itpc_avg(itpc, freqs, base_dir=None,
     ax.legend(loc='upper right')
 
     # Save or show
-    if base_dir is not None:
+    if base_dir is not None and patient_id is not None:
         filename = "avg_itpc_plot"
         plot_path = save_plot(
+            patient_id=patient_id, 
             base_dir=base_dir, 
             fig=fig, 
             filename=filename
@@ -549,13 +548,14 @@ def plot_itpc_avg(itpc, freqs, base_dir=None,
     plt.close(fig)
     return avg_itpc, plot_freqs
 
-def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs, output_dir=None):
+def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channels, eog_chs):
     """
     Main function orchestrating the entire EEG analysis pipeline: 
     loading, preprocessing, stimulus alignment, epoching, ICA, 
     referencing, ITPC computation, and plotting.
     """
-    
+    #1. Define your parameters here 
+
     # 2. Load and preprocess EEG data
     raw = load_and_preprocess_eeg(
         eeg_file_path=eeg_file_path,
@@ -617,12 +617,15 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     itpc, freqs, phase_data = compute_itpc(epochs_data=epochs_data, fs=fs)
     
     # 9. Plot results (individual channels + average)
+    base_dir = "data/results/lang_tracking"       # The parent directory where patient-specific folders go
+
     plot_itpc_each_channel(
     itpc=itpc,
     freqs=freqs,
     ch_names=epochs_clean.info['ch_names'],
     fmin=0.5,
     fmax=4,
+    patient_id=patient_id,
     base_dir=base_dir
     )
 
@@ -631,6 +634,7 @@ def main(eeg_file_path, stimulus_csv_path, patient_id, use_channels, bad_channel
     freqs=freqs,
     fmin=0.5,
     fmax=4,
+    patient_id=patient_id,
     base_dir=base_dir
     )
     
