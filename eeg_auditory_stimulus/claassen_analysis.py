@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import matplotlib
-import yaml
 import sys
 import os
 import mne
@@ -22,24 +21,40 @@ from preprocessing.eeg_loader import load_eeg, get_eeg_timestamps, load_stimulus
 from preprocessing.save_functions import save_log, save_plot
 
 # Set the backend for Matplotlib
-matplotlib.use('Qt5Agg')
+matplotlib.use('Agg') # Qt5Agg
 
-# # Load Configuration
-# Get the absolute path of the project root directory
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))  # Adjust as needed
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "data", "configs", "claassen_cfg.yml")
-
-def load_config():
-    """Load the configuration file."""
-    with open(CONFIG_PATH, 'r') as file:
-        return yaml.safe_load(file)
-
-config = load_config()
+# Load Configuration
+config = {
+    "CON001a_path": "X~ X_ef7f7805-3781-4f1e-8134-8d5b57750330.EDF",
+    "CON001b_path": "X~ X_86b44d5d-5036-4748-b666-ceff710a1e8d.EDF",
+    "CON002_path": "CON002_20240924.EDF",
+    "CON003_path": "CON003_clipped.EDF",
+    "CON004_path": "CON004_clipped.EDF",
+    "CON005_path": "CON005_clipped.EDF",
+    "verbose": False,
+    "l_freq": 1,
+    "h_freq": 30,
+    "sfreq": 512,
+    "channels": ["Fp1", "Fp2", "Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2", "DC7"],
+    "CON001a_channels": ["Fp1", "Fp2", "Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "CON001b_channels": ["Fp1", "Fp2", "Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "CON002_channels": ["Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "CON003_channels": ["Fz", "F3", "F4", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "CON004_channels": ["Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "CON005_channels": ["Fp1", "Fp2", "Fz", "F3", "F4", "F7", "F8", "Cz", "C3", "C4", "T3", "T4", "Pz", "P3", "P4", "T5", "T6", "O1", "O2"],
+    "channel_map": {"T7": "T3", "T8": "T4", "P7": "T5", "P8": "T6"},
+    "trial_type": ["lcmd", "rcmd"],
+    "dc_threshold": 0.01
+}
 
 # Load EEG data
-def load_eeg_data(subject_id=None, edf_path=None):
+def load_eeg_data(subject_id=None, edf_dir=None):
     """Load the EEG data for a given subject."""
-    eeg_path = edf_path if edf_path else config.get(f"{subject_id}_path", "")
+    # Get the path from config
+    relative_path = config.get(f"{subject_id}_path", "")
+    
+    # Combine with edf_dir
+    eeg_path = os.path.join(edf_dir, os.path.basename(relative_path))
     
     if not eeg_path or not os.path.exists(eeg_path):
         raise FileNotFoundError(f"File not found: {eeg_path}")
@@ -51,9 +66,9 @@ def load_eeg_data(subject_id=None, edf_path=None):
     return raw, dc_channel, subject_id
 
 # Process trials and segment into epochs
-def process_trials(raw, subject_id, dc_channel):
+def process_trials(raw, subject_id, dc_channel, patient_df_path):
     start_time, end_time = get_eeg_timestamps(raw, subject_id)
-    df, patient_id = load_stimulus(config["event_full_path"], start_time, end_time)
+    df, patient_id = load_stimulus(patient_df_path, start_time, end_time)
     
     patient_trial = df.loc[(df['patient_id'] == patient_id) & (df['trial_type'].isin(config['trial_type']))]
 
@@ -125,7 +140,7 @@ def generate_epochs(raw, df):
     return events, metadata
 
 # Plot trial/instruction/epoch structure
-def plot_instructions_and_epochs(instructions, events, output_filename='plot_output.png'):
+def plot_instructions_and_epochs(instructions, events):
     """Plot trial/instruction/epoch structure and save the plot."""
     plt.figure(figsize=(10, 5))
     plt.scatter(instructions[:, 0], instructions[:, 2], color=['g', 'r'] * (len(instructions) // 2), marker='s', label='Instruction offset')
@@ -136,7 +151,6 @@ def plot_instructions_and_epochs(instructions, events, output_filename='plot_out
     plt.gca().set_yticklabels(['Keep moving...', 'Stop moving...'])
     plt.legend()
     plt.grid(True)
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
 
     return plt
 
@@ -166,6 +180,7 @@ def preprocess_epochs(raw, events, metadata, subject_id):
 
     epochs.info['description'] = 'standard/1020'
     csd_epochs = mne.preprocessing.compute_current_source_density(epochs)
+
     return csd_epochs
 
 # Perform Power Spectral Density (PSD) analysis
@@ -292,7 +307,7 @@ def compute_auc(clf, psd_data, epochs, cv, subject_id, base_dir):
     )
 
     mean_score = scores.mean(0)
-    save_log(subject_id, base_dir, f'Mean scores across split: AUC={mean_score:.3f}')
+    save_log(base_dir, f'Mean scores across split: AUC={mean_score:.3f}')
     print(f'Mean scores across split: AUC={mean_score:.3f}')
     return mean_score, scores
 
@@ -326,9 +341,10 @@ def permutation_test(clf, psd_data, epochs, cv, subject_id, base_dir, n_permutat
     ).mean(0)
 
     p_value = np.mean(np.array(permutation_scores) >= observed_score)
-    save_log(subject_id, base_dir, f"Permutation p-value = {p_value:.4f}")
+    save_log(base_dir, f"Permutation p-value = {p_value:.4f}")
     print(f"Permutation p-value = {p_value:.4f}")
-
+    
+    plt.figure(figsize=(10, 5))
     plt.hist(permutation_scores, bins=30, alpha=0.7, label='Permutation scores')
     plt.axvline(observed_score, color='red', linestyle='--', label='Observed score')
     plt.xlabel('ROC AUC Score')
@@ -357,15 +373,14 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
     plt.ylabel('Frequency')
     plt.legend()
     plt.title('Permutation Test Null Distribution')
-    plt.show()
     
     # Compute p-value
     n_higher = sum(s >= scores.mean(0) for s in permutation_scores)
     pvalue = (n_higher + 1.) / (n_permutations + 1.)
 
-    save_log(subject_id, base_dir, f"Empirical AUC = {scores.mean(0):.2f} +/- {scores.std(0):.2f}")
-    save_log(subject_id, base_dir, f"Shuffle AUC = {np.mean(permutation_scores, 0):.2f}")
-    save_log(subject_id, base_dir, f"p-value = {pvalue:.4f}")    
+    save_log(base_dir, f"Empirical AUC = {scores.mean(0):.2f} +/- {scores.std(0):.2f}")
+    save_log(base_dir, f"Shuffle AUC = {np.mean(permutation_scores, 0):.2f}")
+    save_log(base_dir, f"p-value = {pvalue:.4f}")    
     print("Empirical AUC = %.2f +/- %.2f" % (scores.mean(0), scores.std(0)))
     print("Shuffle AUC = %.2f" % np.mean(permutation_scores, 0))
     print("p-value = %.4f" % pvalue)
@@ -386,28 +401,38 @@ def plot_permutation_test(permutation_scores, scores, observed_score, subject_id
 
     return plt
 
-# Main processing flow
-def main():
-    subject_id = "CON001b" #CON001a, CON001b, CON002, CON003, CON004
-    base_dir = os.path.join(os.getcwd(), 'data')
+def run_analysis(subject_id, dir, edf_dir, patient_df_path, date_str):
+    print('===========start run analysis================')
+    subject_id = subject_id #CON001a, CON001b, CON002, CON003, CON004, CON005
+    base_dir = os.path.join(os.getcwd(), dir)
     bands = ((1,3), (4,7), (8,13), (14,30))
+    
+    # Create a folder for the patient and date (if not exists)
+    patient_folder = os.path.join(base_dir, f"{subject_id}_{date_str}")
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(patient_folder, exist_ok=True)
+    print('===========create directory================')
 
     try:
-        raw, dc_channel, subject_id = load_eeg_data(subject_id)
-        save_plot(subject_id, base_dir, raw.plot(), 'raw_eeg_plot')
+        print('===========start load eeg================')
+        raw, dc_channel, subject_id = load_eeg_data(subject_id, edf_dir)
+        # save_plot(patient_folder, raw.plot(), 'raw_eeg_plot')
 
-        df = process_trials(raw, subject_id, dc_channel)
+        print('===========start process_trials================')
+        df = process_trials(raw, subject_id, dc_channel, patient_df_path)
+        print('===========start generate_epochs================')
         events, metadata = generate_epochs(raw, df)
 
         np.set_printoptions(threshold=np.inf)
         previous_values = [0] * len(df)
         event_ids = df['event_id'].tolist()  # Removed addition of a final event
         instructions = np.column_stack([df['start_sample'], previous_values, event_ids])
-        epochs_plt = plot_instructions_and_epochs(instructions, events, output_filename = 'plot_output.png')
-        save_plot(subject_id, base_dir, epochs_plt, 'instructions_epochs')
+        epochs_plt = plot_instructions_and_epochs(instructions, events)
+        save_plot(patient_folder, epochs_plt, 'epochs_during_instructions')
         
         epochs = preprocess_epochs(raw, events, metadata, subject_id)
-        save_plot(subject_id, base_dir, epochs.plot(scalings='auto', n_epochs=3), 'prerpocess_epochs_plot')
+        # save_plot(patient_folder, epochs.plot(scalings='auto', n_epochs=3), 'preprocess_epochs_plot')
         
         psds_all_epochs, freqs = compute_psd(epochs)
         psd_data = extract_band_psd(psds_all_epochs, freqs, bands)
@@ -415,29 +440,26 @@ def main():
         # Define cross validation
         cv = LeaveOneGroupOut()
         cv_plt = plot_cross_validation(cv, epochs, psd_data)
-        save_plot(subject_id, base_dir, cv_plt, 'cross_validation')
+        save_plot(patient_folder, cv_plt, 'cross_validation_performance')
 
         clf = define_classifier()
         # Decoding performance over time
         prob_plt = decode_performance(clf, psd_data, epochs, cv)
-        save_plot(subject_id, base_dir, prob_plt, 'average_predicted_probability')
+        save_plot(patient_folder, prob_plt, 'average_predicted_probability')
 
         # Topo Map
         topo_plt = plot_topo_map(clf, psd_data, epochs, bands)
-        save_plot(subject_id, base_dir, topo_plt, 'topo_map')
+        save_plot(patient_folder, topo_plt, 'EEG_spatial_patterns')
 
         # Computing cross-validated AUC scores
-        mean_score, scores = compute_auc(clf, psd_data, epochs, cv, subject_id, base_dir)
+        mean_score, scores = compute_auc(clf, psd_data, epochs, cv, subject_id, patient_folder)
 
         # Performing permutation test
-        p_value, permutation_scores, observed_score, dis_plt = permutation_test(clf, psd_data, epochs, cv, subject_id, base_dir, n_permutations=500)
-        save_plot(subject_id, base_dir, dis_plt, 'permutation_distribution')
+        p_value, permutation_scores, observed_score, dis_plt = permutation_test(clf, psd_data, epochs, cv, subject_id, patient_folder, n_permutations=500)
+        save_plot(patient_folder, dis_plt, 'permutation_test_distribution')
         
-        perm_plt = plot_permutation_test(permutation_scores, scores, observed_score, subject_id, base_dir, n_permutations=500)
-        save_plot(subject_id, base_dir, perm_plt, 'permutation_plt')
+        perm_plt = plot_permutation_test(permutation_scores, scores, observed_score, subject_id, patient_folder, n_permutations=500)
+        save_plot(patient_folder, perm_plt, 'permutation_results')
 
     except Exception as e:
-        save_log(subject_id, base_dir, f"Error: {str(e)}")
-
-if __name__ == "__main__":
-    main()
+        save_log(patient_folder, f"Error: {str(e)}")
