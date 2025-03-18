@@ -1,6 +1,6 @@
 # EEG Auditory Stimulus Project
 
-This repository focuses on the preliminary analysis of EEG data collected from controlled (healthy) patients subjected to auditory stimuli. The goal is to replicate findings from existing studies and explore the brain's response to auditory inputs.
+This repository hosts code, configurations, and documentation for analyzing EEG data collected from healthy participants in response to various auditory stimuli. The overarching objective is to replicate findings from established literature and explore novel approaches to understanding the brain’s response to auditory inputs, with an eye toward potential applications in neurorehabilitation and brain-injury prognostication.
 
 ## Table of Contents
 
@@ -13,9 +13,48 @@ This repository focuses on the preliminary analysis of EEG data collected from c
 
 ## Project Overview
 
-Understanding how the brain processes auditory stimuli is crucial for insights into neural mechanisms and potential applications in neurorehabilitation. This project aims to analyze EEG data to observe brain responses to controlled auditory inputs, replicating methodologies from established research.
+Auditory stimulus paradigms provide critical insights into how the brain processes and responds to sounds and speech. By collecting EEG data and applying targeted analyses, this project aims to:
+
+- Replicate documented methodologies from key research on auditory-evoked potentials.
+
+- Integrate multiple paradigms (e.g., beep-based reactivity, language tracking, command-following).
+
+- Refine preprocessing steps (notch filters, ICA for artifact removal, epoching) to ensure data quality.
+
+- Evaluate machine-learning approaches (e.g., SVM) for detecting covert responses in motor imagery tasks.
+
+Ultimately, this repository lays the groundwork for a modular EEG software toolkit that can be adapted for real-time, bedside usage in both healthy individuals and patients with brain injuries.
+
+```
+eeg-auditory-stimulus/
+├── configs/
+│   ├── claassen_cfg.yml
+│   ├── johnsen_cfg_test.yml
+│   └── johnsen_cfg_test.yml
+├── eeg_auditory_stimulus/
+│   ├── __init__.py
+│   ├── rodika_modularized.py
+│   ├── claassen_analysis.py
+│   └── johnsen_quan.py
+├── notebooks/
+│   ├── claassen_analysis.ipynb
+│   ├── johnsen_quan.ipynb
+│   ├── johnsen_statistic.ipynb
+│   └── rodika_analysis.ipynb
+├── preprocessing/
+│   ├── eeg_loader.py
+│   ├── filter_data.py
+│   └── save_functions.py
+├── .gitignore
+├── LICENSE
+├── README.md
+├── main.py
+├── requirements.txt
+└── setup.py
+```
 
 ## Repository Structure
+To read more about what each folder contains, please navigate to their respective folders in the repository. Below is a brief explanation of each file. 
 
 - `configs/`: Configuration files for experiments and data processing.
 - `eeg_auditory_stimulus/`: Core Python modules for EEG analyses.
@@ -69,8 +108,6 @@ To begin analyzing EEG data:
     Explore the Jupyter notebooks in the `notebooks/` directory for detailed analysis workflows.
     Run respectives files in the `eeg_auditory_stimulus/` directory for modular functions.
 
-
-
 ## Contributing
 
 - Khanh Ha
@@ -82,4 +119,6 @@ To begin analyzing EEG data:
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
----
+## Conclusion
+
+This repository demonstrates how three distinct EEG paradigms—reactivity, language tracking, and motor command-following—can be united in a single software platform to facilitate data collection and analysis at the bedside. By providing standardized preprocessing pipelines, modular analytical modules, and example notebooks, we aim to streamline research into auditory EEG responses. Ongoing development and user contributions will focus on refining artifact removal, expanding machine learning capabilities, and validating these methods in both healthy participants and clinical populations. Ultimately, we hope this project will serve as a robust foundation for further innovation and collaboration in EEG-based neuroprognostication and rehabilitation research.
