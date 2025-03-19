@@ -49,20 +49,11 @@ config = {
 
 # Load EEG data
 def load_eeg_data(subject_id=None, edf_dir=None):
-    """Load the EEG data for a given subject."""
-    # # Get the path from config
-    # relative_path = config.get(f"{subject_id}_path", "")
-    
-    # # Combine with edf_dir
-    # eeg_path = os.path.join(edf_dir, os.path.basename(relative_path))
-    
-    # if not eeg_path or not os.path.exists(eeg_path):
-    #     raise FileNotFoundError(f"File not found: {eeg_path}")
-    
+    """Load the EEG data for a given subject."""    
     raw = mne.io.read_raw_edf(edf_dir, preload=True)
     raw.filter(l_freq=1, h_freq=30)  # Band-pass filter
 
-    fname, raw, dc_channel = load_eeg(eeg_path, config, subject_id)
+    fname, raw, dc_channel = load_eeg(edf_dir, config, subject_id)
     return raw, dc_channel, subject_id
 
 # Process trials and segment into epochs
