@@ -26,6 +26,21 @@ Auditory stimulus paradigms provide critical insights into how the brain process
 
 Ultimately, this repository lays the groundwork for a modular EEG software toolkit that can be adapted for real-time, bedside usage in both healthy individuals and patients with brain injuries.
 
+## Repository Structure
+To read more about what each folder contains, please navigate to their respective folders in the repository. Below is a brief explanation of each file. 
+
+- `configs/`: Configuration files for experiments and data processing.
+- `eeg_auditory_stimulus/`: Core Python modules for EEG analyses.
+- `notebooks/`: Jupyter notebooks detailing data exploration and analysis workflows.
+- `preprocessing/`: Scripts for preprocessing raw EEG data.
+- `.gitignore`: Specifies files and directories to be ignored by Git.
+- `LICENSE`: License information for the repository.
+- `README.md`: This document.
+- `main.py`: Main script to run analyses.
+- `requirements.txt`: List of Python dependencies.
+- `setup.py`: Script for setting up the Python package.
+
+A high-level look at our repository structure: 
 ```
 eeg-auditory-stimulus/
 ├── configs/
@@ -53,20 +68,6 @@ eeg-auditory-stimulus/
 ├── requirements.txt
 └── setup.py
 ```
-
-## Repository Structure
-To read more about what each folder contains, please navigate to their respective folders in the repository. Below is a brief explanation of each file. 
-
-- `configs/`: Configuration files for experiments and data processing.
-- `eeg_auditory_stimulus/`: Core Python modules for EEG analyses.
-- `notebooks/`: Jupyter notebooks detailing data exploration and analysis workflows.
-- `preprocessing/`: Scripts for preprocessing raw EEG data.
-- `.gitignore`: Specifies files and directories to be ignored by Git.
-- `LICENSE`: License information for the repository.
-- `README.md`: This document.
-- `main.py`: Main script to run analyses.
-- `requirements.txt`: List of Python dependencies.
-- `setup.py`: Script for setting up the Python package.
 
 ## Installation
 
