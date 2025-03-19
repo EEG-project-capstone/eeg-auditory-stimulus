@@ -21,7 +21,7 @@ from preprocessing.eeg_loader import load_eeg, get_eeg_timestamps, load_stimulus
 from preprocessing.save_functions import save_log, save_plot
 
 # Set the backend for Matplotlib
-matplotlib.use('Agg') # Qt5Agg
+matplotlib.use('Agg') # Change from Qt5Agg for streamlit module call
 
 # Load Configuration
 config = {
@@ -50,16 +50,16 @@ config = {
 # Load EEG data
 def load_eeg_data(subject_id=None, edf_dir=None):
     """Load the EEG data for a given subject."""
-    # Get the path from config
-    relative_path = config.get(f"{subject_id}_path", "")
+    # # Get the path from config
+    # relative_path = config.get(f"{subject_id}_path", "")
     
-    # Combine with edf_dir
-    eeg_path = os.path.join(edf_dir, os.path.basename(relative_path))
+    # # Combine with edf_dir
+    # eeg_path = os.path.join(edf_dir, os.path.basename(relative_path))
     
-    if not eeg_path or not os.path.exists(eeg_path):
-        raise FileNotFoundError(f"File not found: {eeg_path}")
+    # if not eeg_path or not os.path.exists(eeg_path):
+    #     raise FileNotFoundError(f"File not found: {eeg_path}")
     
-    raw = mne.io.read_raw_edf(eeg_path, preload=True)
+    raw = mne.io.read_raw_edf(edf_dir, preload=True)
     raw.filter(l_freq=1, h_freq=30)  # Band-pass filter
 
     fname, raw, dc_channel = load_eeg(eeg_path, config, subject_id)
@@ -179,7 +179,7 @@ def preprocess_epochs(raw, events, metadata, subject_id):
     )
 
     epochs.info['description'] = 'standard/1020'
-    csd_epochs = mne.preprocessing.compute_current_source_density(epochs)
+    csd_epochs = mne.preprocessing.compute_current_source_density(epochs) # change to mne package due to deprecation of numpy
 
     return csd_epochs
 
