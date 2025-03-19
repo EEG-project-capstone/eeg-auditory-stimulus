@@ -1,4 +1,5 @@
-# EEG Auditory Stimulus Project
+
+<img width="1000" alt="Screenshot 2025-03-18 at 6 08 35 PM" src="https://github.com/user-attachments/assets/63cc0cde-6f48-442e-9d4a-4c662dc2bef3" />
 
 This repository hosts code, configurations, and documentation for analyzing EEG data collected from healthy participants in response to various auditory stimuli. The overarching objective is to replicate findings from established literature and explore novel approaches to understanding the brain’s response to auditory inputs, with an eye toward potential applications in neurorehabilitation and brain-injury prognostication.
 
