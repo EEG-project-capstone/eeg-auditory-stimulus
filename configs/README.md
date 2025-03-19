@@ -30,3 +30,7 @@ configs/
 
 **Output Directories**
 - Where to store figures, logs, or processed data (e.g., data/results/).
+
+### Classen-Specific Parameters
+```yaml
+dc_threshold: 0.01  # For CON005, it might need to be set as 0.005.

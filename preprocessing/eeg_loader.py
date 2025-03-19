@@ -72,11 +72,9 @@ def load_eeg(eeg_path, config, subject=None):
         channels = config['CON005_channels']
     else:
         channels = config['channels']
-    print("channels ===> ", channels)
 
     # channels = config['channels']
     dc_channel = get_dc_channels(raw, config['dc_threshold'])
-    print("dc_channel ===> ", dc_channel)
     channels.extend(dc_channel)
     channels = list(set(channels))
     raw.pick(channels)
